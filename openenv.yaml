@@ -1,0 +1,14 @@
+version: "1.0"
+name: "sre-incident-commander"
+description: "A high-fidelity OpenEnv simulating a microservices SRE triage environment. Tests a frontier model's ability to map dependencies, trace cascading errors, and filter transient network noise (Chaos Monkey)."
+authors: 
+  - "Senior Principal SRE"
+entry_point: "server:app"
+dependencies:
+  - "fastapi"
+  - "uvicorn"
+  - "pydantic"
+tags:
+  - "devops"
+  - "reasoning"
+  - "state-machine"
