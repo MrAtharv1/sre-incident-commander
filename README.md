@@ -8,25 +8,55 @@ tags:
   - openenv
 ---
 
-# SRE Incident Commander (OpenEnv)
+# 🚨 SRE Incident Commander (OpenEnv)
 
-## Description & Motivation
-The **SRE Incident Commander** environment simulates real-world Site Reliability Engineering (SRE) triage. Instead of testing models on simplistic puzzle games, this environment evaluates a frontier AI's ability to logically debug a cascading microservices architecture (`Frontend -> API-Gateway -> Auth -> Database`). 
+### Autonomous Site Reliability Engineering & Root Cause Analysis Benchmark
 
-It explicitly penalizes "blind guessing" (restarting healthy services without checking metrics) and rewards methodical log/metric correlation. It features an integrated programmatic grader returning deterministic 0.0 - 1.0 scores based on efficiency and accuracy.
+## 🚀 Description & Motivation
+The **SRE Incident Commander** environment simulates real-world Site Reliability Engineering (SRE) triage. Unlike simplistic puzzle games, this environment evaluates a frontier AI's ability to logically debug a cascading microservices architecture.
 
-## Action & Observation Space
-* **Action Space (`SREAction`):** Strictly typed JSON schema requiring a `command` (`get_service_tree`, `inspect_logs`, `check_metrics`, `read_config`, `rollback_config`, `restart_pod`) and a `target` service.
-* **Observation Space (`SREObservation`):** Returns real-time system `telemetry`, console `output` from the last command, and a decaying `health_score`.
+It explicitly penalizes "blind guessing" (e.g., restarting healthy services without prior log inspection) and rewards methodical correlation of logs and metrics to minimize MTTR (Mean Time To Recovery).
 
-## Tasks & Difficulty Structure
-1. **Task 0 (Easy) - Service Stopped:** The database service crashes and reports a DOWN state. The agent must detect the failure, read the OOMKilled logs, and execute a `restart_pod`.
-2. **Task 1 (Medium) - Port Mismatch:** The API Gateway suffers a bad deployment, changing its listening port. The agent must `read_config` to identify the expected vs. actual port, and execute a `rollback_config`.
-3. **Task 2 (Hard) - Cascading Leak + Chaos Monkey:** A configuration typo in the Auth service drastically limits its connection pool. This bubbles up the dependency tree, presenting as a 504 Timeout at the Frontend. Furthermore, a transient "Chaos Monkey" injects random latency noise across the mesh. The agent must map the service tree, ignore the transient latency spikes, trace the 504s down to the Auth service logs, and execute a `rollback_config`. (Note: Simply restarting the Auth pod will temporarily clear the pool but will *not* resolve the root cause config drift).
+## 🧠 System Topology & Action Space
+The environment models a strict 4-tier dependency mesh: `frontend ➔ api-gateway ➔ auth ➔ database`
 
-## Setup & Execution
+| Command | Purpose | Impact on MTTR |
+| :--- | :--- | :--- |
+| `get_service_tree` | Map the dependency mesh | High (Identifies blast radius) |
+| `inspect_logs` | Retrieve stdout/stderr telemetry | Critical (Root Cause Analysis) |
+| `check_metrics` | Analyze CPU/RAM/Latency spikes | High (Performance Triage) |
+| `read_config` | Check current service configuration | Medium (Spots drift) |
+| `rollback_config` | Revert to last known stable state | Critical (Remediation) |
+| `restart_pod` | Force a service restart (OOM recovery) | Medium (Service Restoration) |
 
-**Containerized Execution (Docker):**
+## 🔥 Benchmark Tasks & Difficulty
+
+* **Task 0 (Easy) - Service Restoration:** The `database` crashes (OOMKilled). Agent must detect the DOWN state, verify logs, and execute `restart_pod`.
+* **Task 1 (Medium) - Configuration Drift:** Port mismatch in `api-gateway` post-deployment. Requires `read_config` vs actual state comparison and `rollback_config`.
+* **Task 2 (Hard) - Cascading Leak + Chaos Monkey:** * *The Bug:* The `auth` service suffers a connection pool limit typo causing a 504 Timeout at the `frontend`.
+  * *The Noise:* An integrated "Chaos Monkey" injects transient latency spikes across the entire mesh.
+  * *The Challenge:* The agent must maintain SLA by ignoring transient noise, tracing the timeout down the tree to `auth`, and fixing the root cause via `rollback_config`. *(Note: Simple restarts will fail as the config drift persists).*
+
+## 📊 Evaluation & Scoring
+The environment features an integrated programmatic grader returning a deterministic score (0.0 - 1.0):
+* **Accuracy:** Did the agent resolve the root cause on the correct target?
+* **Efficiency:** Step-penalty deductions for unnecessary "destructive" actions or hallucinated commands.
+* **SLA Adherence:** Was the resolution within the strict 15-step limit?
+
+## 🛠️ Setup & Execution (Docker)
+Ensure you have Docker installed, then run:
+
 ```bash
+# 1. Build the environment
 docker build -t sre-openenv .
-docker run -p 8000:8000 sre-openenv
+
+# 2. Run the SRE Commander (Port 7860 for Hugging Face compatibility)
+docker run -p 7860:7860 sre-openenv
+
+## 🏆 Baseline Scores (Qwen 2.5 72B)
+* **Task 0:** Success (Score: 0.98) - Solved in 3 steps
+* **Task 1:** Success (Score: 0.96) - Solved in 5 steps
+* **Task 2:** Success (Score: 0.84) - Solved in 6 steps (Successfully filtered Chaos Monkey noise)
+
+---
+*Built by **Team Virasat** (JSS Academy of Technical Education, Noida)*
