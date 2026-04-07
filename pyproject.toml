@@ -7,7 +7,7 @@ name = "sre-incident-commander"
 version = "1.0.0"
 description = "Autonomous Site Reliability Engineering & Root Cause Analysis Benchmark"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "fastapi",
     "uvicorn",
