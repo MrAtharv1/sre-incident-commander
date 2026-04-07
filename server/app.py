@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Query
-from models import SREAction, SREObservation
+from models import SREAction, SREObservation, SREReward
 from environment import SREEnvironment
 
 app = FastAPI(title="SRE Incident Commander API")
@@ -11,10 +11,14 @@ def reset_endpoint(task_id: str = Query("task_0")):
 
 @app.post("/step")
 def step_endpoint(action: SREAction):
-    obs, reward, done, info = env.step(action)
+    obs, reward_value, done, info = env.step(action)
+    
+    
+    reward_model = SREReward(value=reward_value)
+    
     return {
         "observation": obs.model_dump(),
-        "reward": reward,
+        "reward": reward_model.model_dump(), 
         "done": done,
         "info": info
     }
