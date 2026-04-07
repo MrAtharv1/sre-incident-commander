@@ -5,10 +5,10 @@ from openai import OpenAI
 from typing import List, Optional
 
 # --- Configuration & Environment Variables ---
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 HF_TOKEN = os.getenv("HF_TOKEN")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3-70b-chat-hf")
-ENV_URL = os.getenv("ENV_URL", "http://localhost:8000")
+ENV_URL = os.getenv("ENV_URL", "http://localhost:7860")
 BENCHMARK = "sre_incident_commander"
 SUCCESS_SCORE_THRESHOLD = 0.8 # Score needed to be considered a 'success'
 
@@ -34,9 +34,9 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
         flush=True,
     )
 
-def log_end(success: bool, steps: int, rewards: List[float]) -> None:
+def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
-    print(f"[END] success={str(success).lower()} steps={steps} rewards={rewards_str}", flush=True)
+    print(f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}", flush=True)
 
 # --- Main Inference Loop ---
 def run_baseline():
@@ -50,7 +50,7 @@ def run_baseline():
         except Exception as e:
             # Environment connection failure
             log_step(step=1, action="reset", reward=0.0, done=True, error=str(e))
-            log_end(success=False, steps=1, rewards=[0.0])
+            log_end(success=False, steps=1, score=0.0, rewards=[0.0])
             continue
         
         messages = [
@@ -62,6 +62,7 @@ def run_baseline():
         step_count = 0
         rewards = []
         success = False
+        final_score = 0.0 
         
         while not done and step_count < 15:
             step_count += 1
@@ -92,6 +93,7 @@ def run_baseline():
                 # Check grader score if episode finished
                 if done:
                     grader_score = step_res.get("info", {}).get("grader_score", 0.0)
+                    final_score = grader_score # FIXED: Capture the score
                     success = grader_score >= SUCCESS_SCORE_THRESHOLD
                     
             except Exception as e:
@@ -103,12 +105,11 @@ def run_baseline():
             # Append current step reward
             rewards.append(reward)
             
-            # 3. Log strictly formatted step
+            
             log_step(step=step_count, action=action_str, reward=reward, done=done, error=error)
 
-        # 4. Log strictly formatted end
-        log_end(success=success, steps=step_count, rewards=rewards)
+        
+        log_end(success=success, steps=step_count, score=final_score, rewards=rewards)
 
 if __name__ == "__main__":
-    # Remove all standard prints to protect STDOUT parser
     run_baseline()
