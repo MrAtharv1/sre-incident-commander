@@ -52,11 +52,11 @@ docker build -t sre-openenv .
 
 # 2. Run the SRE Commander
 docker run -p 7860:7860 sre-openenv
+```
 
 ## 🏆 Baseline Scores (Qwen 2.5 72B)
 * **Task 0:** Success (Score: 0.98) - Solved in 3 steps
 * **Task 1:** Success (Score: 0.96) - Solved in 5 steps
 * **Task 2:** Success (Score: 0.84) - Solved in 6 steps (Successfully filtered Chaos Monkey noise)
-```
 ---
 *Built by **Team Virasat** (JSS Academy of Technical Education, Noida)*
