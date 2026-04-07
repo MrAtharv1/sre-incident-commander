@@ -16,3 +16,7 @@ class SREObservation(BaseModel):
     telemetry: Dict[str, Any] = Field(..., description="Current system metrics and states.")
     output: str = Field(..., description="Console output from the last executed command.")
     health_score: float = Field(..., description="Current system health score (0.0 to 1.0).")
+
+
+class SREReward(BaseModel):
+    value: float = Field(..., description="The numerical reward value.")
