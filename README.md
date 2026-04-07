@@ -50,7 +50,7 @@ Ensure you have Docker installed, then run:
 # 1. Build the environment
 docker build -t sre-openenv .
 
-# 2. Run the SRE Commander (Port 7860 for Hugging Face compatibility)
+# 2. Run the SRE Commander
 docker run -p 7860:7860 sre-openenv
 
 ## 🏆 Baseline Scores (Qwen 2.5 72B)
