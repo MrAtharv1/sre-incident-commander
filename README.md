@@ -54,9 +54,18 @@ docker build -t sre-openenv .
 docker run -p 7860:7860 sre-openenv
 ```
 
-## 🏆 Baseline Scores (Qwen 2.5 72B)
-* **Task 0:** Success (Score: 0.98) - Solved in 3 steps
-* **Task 1:** Success (Score: 0.96) - Solved in 5 steps
-* **Task 2:** Success (Score: 0.84) - Solved in 6 steps (Successfully filtered Chaos Monkey noise)
+## 🏆 Baseline Scores (Llama 3.3 70B & Qwen 2.5 72B)
+
+The environment evaluates agents on a scale of 0.0 to 1.0. A score of **0.8** indicates a successful resolution, while a **1.0** indicates a perfect run (Dependency Mapping + Resolution).
+
+### Llama-3.3-70B-Instruct
+* **Task 0 (Easy):** Success (Score: 1.000) — Resolved in 5 steps (Included Service Tree bonus).
+* **Task 1 (Medium):** Success (Score: 1.000) — Resolved in 7 steps (Included Service Tree bonus).
+* **Task 2 (Hard):** Success (Score: 0.800) — Resolved in 4 steps (Missed Service Tree bonus).
+
+### Qwen/Qwen2.5-72B-Instruct
+* **Task 0 (Easy):** Success (Score: 0.800) — Resolved in 4 steps.
+* **Task 1 (Medium):** Success (Score: 0.800) — Resolved in 4 steps.
+* **Task 2 (Hard):** Success (Score: 1.000) — Resolved in 6 steps (Included Service Tree bonus).
 ---
 *Built by **Team Virasat** (JSS Academy of Technical Education, Noida)*
