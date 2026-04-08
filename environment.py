@@ -65,12 +65,12 @@ class SREEnvironment:
         if not self.resolved and self.step_count > 10: 
             score -= 0.5
             
-        # The ultimate safety clamp to satisfy Phase 2 rule: strictly between 0 and 1
+        # The ultimate safety clamp: strictly between 0 and 1
         return max(0.01, min(0.99, score)) 
 
     def step(self, action: SREAction) -> Tuple[SREObservation, float, bool, Dict]:
         self.step_count += 1
-        reward = 0.0 
+        reward = 0.0
         done = False
         output = ""
 
@@ -143,9 +143,12 @@ class SREEnvironment:
         if done:
             final_safe_score = self._calculate_grader_score() 
             info["task_id"] = self.current_task.task_id
-            info["score"] = final_safe_score         
-            info["grader_score"] = final_safe_score   # Backup 
-            reward = final_safe_score                 # The ONLY time reward is greater than 0.0
+            info["score"] = final_safe_score          
+            info["grader_score"] = final_safe_score   
+            reward = final_safe_score
+        else:
+            # NON-TERMINAL: Gave the bot a dummy 0.01 so it doesn't crash on mid-steps
+            reward = 0.01
 
         return obs, float(reward), done, info
 
