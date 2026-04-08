@@ -5,7 +5,7 @@ authors:
   - "Atharv (VIRASAT)"
   - "Prince Varshney (VIRASAT)"
   - "Aditi Pandey (VIRASAT)"
-entry_point: "server.app:app"
+entry_point: "server.app:main"
 dependencies:
   - "fastapi"
   - "uvicorn"
