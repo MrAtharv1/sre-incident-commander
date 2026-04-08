@@ -8,13 +8,12 @@ env = SREEnvironment()
 
 @app.post("/reset")
 def reset_endpoint(task_id: str = None):
-    # Grader might not pass task_id, so we let the environment auto-rotate
     obs = env.reset(task_id=task_id)
     return {
         "observation": obs.model_dump(),
-        "reward": 0.0,
+        "reward": 0.01,
         "done": False,
-        "info": {}
+        "info": {"score": 0.01}
     }
 
 @app.post("/step")
@@ -22,7 +21,7 @@ def step_endpoint(action: SREAction):
     obs, reward_value, done, info = env.step(action)
     return {
         "observation": obs.model_dump(),
-        "reward": float(reward_value),  
+        "reward": float(reward_value),
         "done": done,
         "info": info
     }
@@ -33,7 +32,6 @@ def state_endpoint():
     return {"observation": obs.model_dump()}
 
 def main():
-    """Entry point for the OpenEnv validator and local execution."""
     uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
 
 if __name__ == "__main__":
