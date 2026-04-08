@@ -63,13 +63,14 @@ class SREEnvironment:
         
         # Severe penalty for failing to resolve before SLA breach (step count limit)
         if not self.resolved and self.step_count > 10: 
-            score = max(0.0, score - 0.5)
+            score -= 0.5
             
+        # The ultimate safety clamp to satisfy Phase 2 rule: strictly between 0 and 1
         return max(0.01, min(0.99, score)) 
 
     def step(self, action: SREAction) -> Tuple[SREObservation, float, bool, Dict]:
         self.step_count += 1
-        reward = -0.01  # Step penalty for efficiency
+        reward = 0.0 
         done = False
         output = ""
 
@@ -82,7 +83,6 @@ class SREEnvironment:
 
         if action.command == "get_service_tree":
             if not self.service_tree_called: 
-                reward += 0.1
                 self.service_tree_called = True
             output += "Dependency Tree: Frontend -> API-Gateway -> Auth -> Database"
 
@@ -109,11 +109,9 @@ class SREEnvironment:
 
         elif action.command == "rollback_config":
             if action.target == "api-gateway" and inc == "Port Mismatch":
-                reward += 0.8
                 self.resolved = True
                 output += "Gateway config successfully rolled back to port 8080. Connections restored."
             elif action.target == "auth" and inc == "Cascading Leak":
-                reward += 0.8
                 self.resolved = True
                 output += "Auth config successfully rolled back (max_conn=100). Cascading timeouts resolved."
             else:
@@ -121,13 +119,11 @@ class SREEnvironment:
 
         elif action.command == "restart_pod":
             if action.target == "database" and inc == "Service Stopped":
-                reward += 0.8
                 self.resolved = True
                 output += "Database pod restarted. Process running on PID 1. Service healthy."
             elif action.target == "auth" and inc == "Cascading Leak":
                 output += "Auth pod restarted. Connection pool temporarily cleared, but max_conn config is still restricted. Root cause remains."
             elif action.target in self.telemetry and self.telemetry[action.target]["status"] == "healthy":
-                reward -= 0.3 
                 output += f"Warning: Restarted {action.target} blindly. SLA penalty incurred."
             else:
                 output += f"Pod {action.target} restarted. No change in overall system health."
@@ -147,11 +143,11 @@ class SREEnvironment:
         if done:
             final_safe_score = self._calculate_grader_score() 
             info["task_id"] = self.current_task.task_id
-            info["score"] = final_safe_score          
-            info["grader_score"] = final_safe_score   # Backup  
-            reward = final_safe_score                 # Prevents step penalties from leaking
+            info["score"] = final_safe_score         
+            info["grader_score"] = final_safe_score   # Backup 
+            reward = final_safe_score                 # The ONLY time reward is greater than 0.0
 
-        return obs, reward, done, info
+        return obs, float(reward), done, info
 
     def get_state(self, output: str = "") -> SREObservation:
         current_telem = dict(self.telemetry)
