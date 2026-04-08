@@ -56,7 +56,7 @@ class SREEnvironment:
         if not self.resolved and self.step_count > 10: 
             score = max(0.0, score - 0.5)
             
-        return max(0.0, min(1.0, score)) 
+        return max(0.01, min(0.99, score)) 
 
     def step(self, action: SREAction) -> Tuple[SREObservation, float, bool, Dict]:
         self.step_count += 1
