@@ -10,7 +10,7 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3-70b-chat-hf")
 ENV_URL = os.getenv("ENV_URL", "http://localhost:7860")
 BENCHMARK = "sre_incident_commander"
-SUCCESS_SCORE_THRESHOLD = 0.8 # Score needed to be considered a 'success'
+SUCCESS_SCORE_THRESHOLD = 0.8
 
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN or "dummy_key_for_local")
 
@@ -27,7 +27,6 @@ def log_start(task: str, env: str, model: str) -> None:
 def log_step(step: int, action: str, reward: float, done: bool, error: Optional[str]) -> None:
     error_val = error if error else "null"
     done_val = str(done).lower()
-    # Flatten the action JSON string to ensure it prints on a single line
     action_flat = action.replace('\n', '').replace(' ', '')
     print(
         f"[STEP] step={step} action={action_flat} reward={reward:.2f} done={done_val} error={error_val}",
@@ -48,9 +47,9 @@ def run_baseline():
         try:
             obs = requests.post(f"{ENV_URL}/reset?task_id={task}").json()
         except Exception as e:
-            # Environment connection failure
-            log_step(step=1, action="reset", reward=0.0, done=True, error=str(e))
-            log_end(success=False, steps=1, score=0.0, rewards=[0.0])
+            # No 0.0 in fallback
+            log_step(step=1, action="reset", reward=0.01, done=True, error=str(e))
+            log_end(success=False, steps=1, score=0.01, rewards=[0.01])
             continue
         
         messages = [
@@ -62,12 +61,12 @@ def run_baseline():
         step_count = 0
         rewards = []
         success = False
-        final_score = 0.0 
+        final_score = 0.01  
         
         while not done and step_count < 15:
             step_count += 1
             error = None
-            reward = 0.0
+            reward = 0.01  
             action_str = "{}"
             
             try:
@@ -90,26 +89,21 @@ def run_baseline():
                 
                 messages.append({"role": "user", "content": f"Result: {output}. Current telemetry: {step_res['observation']['telemetry']}"})
                 
-                # Check grader score if episode finished
                 if done:
-                    grader_score = step_res.get("info", {}).get("grader_score", 0.0)
-                    final_score = grader_score # FIXED: Capture the score
+                    grader_score = step_res.get("info", {}).get("grader_score", 0.01)
+                    final_score = grader_score
                     success = grader_score >= SUCCESS_SCORE_THRESHOLD
                     
             except Exception as e:
-                # Catch JSON parse errors or LLM timeouts gracefully
                 error = str(e).replace('\n', ' ')
                 done = True
                 success = False
 
-            # Append current step reward
             rewards.append(reward)
-            
-            
             log_step(step=step_count, action=action_str, reward=reward, done=done, error=error)
 
-        
-        log_end(success=success, steps=step_count, score=final_score, rewards=rewards)
+        #Safe rewards list fallback
+        log_end(success=success, steps=step_count, score=final_score, rewards=rewards if rewards else [0.01])
 
 if __name__ == "__main__":
     run_baseline()
