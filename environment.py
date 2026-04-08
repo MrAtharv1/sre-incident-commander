@@ -19,10 +19,19 @@ TASKS = {
 
 class SREEnvironment:
     def __init__(self):
+        self.task_list = list(TASKS.keys())
+        self.current_task_idx = 0
         self.reset()
 
-    def reset(self, task_id: str = "task_0") -> SREObservation:
-        self.current_task = TASKS.get(task_id, TASKS["task_0"])
+    def reset(self, task_id: str = None) -> SREObservation:
+        # Auto-rotate tasks if the grader doesn't specify one
+        if task_id and task_id in TASKS:
+            self.current_task = TASKS[task_id]
+        else:
+            self.current_task = TASKS[self.task_list[self.current_task_idx]]
+            # Move to next task for the next reset
+            self.current_task_idx = (self.current_task_idx + 1) % len(self.task_list)
+            
         self.step_count = 0
         self.service_tree_called = False
         self.resolved = False
@@ -47,7 +56,7 @@ class SREEnvironment:
             self.telemetry["frontend"]["status"] = "504 Timeout"
 
     def _calculate_grader_score(self) -> float:
-        """Programmatic grader returning 0.0 to 1.0 based on deterministic criteria."""
+        """Programmatic grader returning clamped score based on deterministic criteria."""
         score = 0.0
         if self.service_tree_called: score += 0.2
         if self.resolved: score += 0.8
@@ -133,9 +142,14 @@ class SREEnvironment:
 
         obs = self.get_state(output=output)
         info = {}
+        
+        # --- THE BULLETPROOF OVERRIDE ---
         if done:
+            final_safe_score = self._calculate_grader_score() 
             info["task_id"] = self.current_task.task_id
-            info["grader_score"] = self._calculate_grader_score()
+            info["score"] = final_safe_score          
+            info["grader_score"] = final_safe_score   # Backup  
+            reward = final_safe_score                 # Prevents step penalties from leaking
 
         return obs, reward, done, info
 
