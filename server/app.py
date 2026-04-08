@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+import uvicorn
 from models import SREAction, SREObservation, SREReward
 from environment import SREEnvironment
 
@@ -26,3 +27,10 @@ def step_endpoint(action: SREAction):
 @app.get("/state", response_model=SREObservation)
 def state_endpoint():
     return env.get_state(output="State polled.")
+
+def main():
+    """Entry point for the OpenEnv validator and local execution."""
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()
