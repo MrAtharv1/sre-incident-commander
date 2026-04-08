@@ -1,32 +1,36 @@
-from fastapi import FastAPI, Query
 import uvicorn
-from models import SREAction, SREObservation, SREReward
+from fastapi import FastAPI
+from models import SREAction, SREObservation
 from environment import SREEnvironment
 
 app = FastAPI(title="SRE Incident Commander API")
 env = SREEnvironment()
 
-@app.post("/reset", response_model=SREObservation)
-def reset_endpoint(task_id: str = Query("task_0")):
-    return env.reset(task_id=task_id)
+@app.post("/reset")
+def reset_endpoint(task_id: str = None):
+    # Grader might not pass task_id, so we let the environment auto-rotate
+    obs = env.reset(task_id=task_id)
+    return {
+        "observation": obs.model_dump(),
+        "reward": 0.0,
+        "done": False,
+        "info": {}
+    }
 
 @app.post("/step")
 def step_endpoint(action: SREAction):
     obs, reward_value, done, info = env.step(action)
-    
-    
-    reward_model = SREReward(value=reward_value)
-    
     return {
         "observation": obs.model_dump(),
-        "reward": reward_model.model_dump(), 
+        "reward": float(reward_value),  
         "done": done,
         "info": info
     }
 
-@app.get("/state", response_model=SREObservation)
+@app.get("/state")
 def state_endpoint():
-    return env.get_state(output="State polled.")
+    obs = env.get_state(output="State polled.")
+    return {"observation": obs.model_dump()}
 
 def main():
     """Entry point for the OpenEnv validator and local execution."""
