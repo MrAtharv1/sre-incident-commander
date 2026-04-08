@@ -59,7 +59,7 @@ docker run -p 7860:7860 sre-openenv
 The environment evaluates agents on a scale of 0.01 to 0.99. A score of **0.8** indicates a successful resolution, while a **0.99** indicates a perfect run (Dependency Mapping + Resolution).
 
 ### Llama-3.3-70B-Instruct
-* **Task 0 (Easy):** Success (Score: 0.800) — Resolved in 5 steps (Missed Service Tree bonus).
+* **Task 0 (Easy):** Success (Score: 0.990) — Resolved in 5 steps (Included Service Tree bonus).
 * **Task 1 (Medium):** Success (Score: 0.990) — Resolved in 7 steps (Included Service Tree bonus).
 * **Task 2 (Hard):** Success (Score: 0.800) — Resolved in 4 steps (Missed Service Tree bonus).
 
