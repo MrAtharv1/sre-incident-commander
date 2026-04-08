@@ -38,7 +38,7 @@ The environment models a strict 4-tier dependency mesh: `frontend ➔ api-gatewa
   * *The Challenge:* The agent must maintain SLA by ignoring transient noise, tracing the timeout down the tree to `auth`, and fixing the root cause via `rollback_config`. *(Note: Simple restarts will fail as the config drift persists).*
 
 ## 📊 Evaluation & Scoring
-The environment features an integrated programmatic grader returning a deterministic score (0.0 - 1.0):
+The environment features an integrated programmatic grader returning a deterministic score (0.01 - 0.99):
 * **Accuracy:** Did the agent resolve the root cause on the correct target?
 * **Efficiency:** Step-penalty deductions for unnecessary "destructive" actions or hallucinated commands.
 * **SLA Adherence:** Was the resolution within the strict 15-step limit?
@@ -56,16 +56,16 @@ docker run -p 7860:7860 sre-openenv
 
 ## 🏆 Baseline Scores (Llama 3.3 70B & Qwen 2.5 72B)
 
-The environment evaluates agents on a scale of 0.0 to 1.0. A score of **0.8** indicates a successful resolution, while a **1.0** indicates a perfect run (Dependency Mapping + Resolution).
+The environment evaluates agents on a scale of 0.01 to 0.99. A score of **0.8** indicates a successful resolution, while a **0.99** indicates a perfect run (Dependency Mapping + Resolution).
 
 ### Llama-3.3-70B-Instruct
-* **Task 0 (Easy):** Success (Score: 1.000) — Resolved in 5 steps (Included Service Tree bonus).
-* **Task 1 (Medium):** Success (Score: 1.000) — Resolved in 7 steps (Included Service Tree bonus).
+* **Task 0 (Easy):** Success (Score: 0.990) — Resolved in 5 steps (Included Service Tree bonus).
+* **Task 1 (Medium):** Success (Score: 0.990) — Resolved in 7 steps (Included Service Tree bonus).
 * **Task 2 (Hard):** Success (Score: 0.800) — Resolved in 4 steps (Missed Service Tree bonus).
 
 ### Qwen/Qwen2.5-72B-Instruct
 * **Task 0 (Easy):** Success (Score: 0.800) — Resolved in 4 steps.
 * **Task 1 (Medium):** Success (Score: 0.800) — Resolved in 4 steps.
-* **Task 2 (Hard):** Success (Score: 1.000) — Resolved in 6 steps (Included Service Tree bonus).
+* **Task 2 (Hard):** Success (Score: 0.990) — Resolved in 6 steps (Included Service Tree bonus).
 ---
 *Built by **Team Virasat** (JSS Academy of Technical Education, Noida)*
